@@ -32,6 +32,8 @@ cred = credentials.Certificate('firebase_private_key.json')
 app_storage = firebase_admin.initialize_app(cred, {
     'storageBucket': 'projectmanagement-3e8a8.appspot.com',
 }, name='storage')
+firebase_admin.initialize_app(cred)
+
 
 # Login
 @app.route("/", methods=["POST", "GET"])
@@ -42,34 +44,79 @@ def login():
         try:
             user = authentication.sign_in_with_email_and_password(email, password)
             if user is not None:
-                cred = credentials.Certificate('firebase_private_key.json')
-                firebase_admin.initialize_app(cred)
+                if not firebase_admin._apps:
+                    firebase_admin.initialize_app(cred)
                 user_id = firebase_admin.auth.get_user_by_email(email)
                 session['user_id'] = user_id.uid
                 session["user_email"] = email
                 admin_user = database.child("Admin").get()
                 admin_user_email = admin_user.val()
-                session['user_name'] = admin_user_email['Sunny']['fname']
 
                 if email == admin_user_email['Sunny']['email']:
+                    session['user_name'] = admin_user_email['Sunny']['fname']
                     return redirect(url_for("admin", name=session.get('user_name')))
                 else:
                     return redirect(url_for('employeeDashboard'))
             else:
-                flash("Please check your credentials!!!")
+                flash("Please check  credentials!!!")
         except Exception as e:
             flash(e)
     return render_template("login.html")
 
 
-@app.route("/employee/dashboard")
+@app.route("/employee/dashboard", methods=["post", "get"])
 def employeeDashboard():
-    return render_template("emp_dashboard.html")
+    tasks = database.child("Tasks").get()
+    emp_tasks = []
+    employee = database.child("Employee").get()
+
+    for emp in employee.each():
+        if emp.val()['email'] == session.get("user_email"):
+            session['user_name'] = emp.val()['name']
+
+    for task in tasks.each():
+        if session.get("user_name") == task.val()['assigned_to']:
+            emp_tasks.append(task)
+
+    return render_template("emp_dashboard.html", emp_tasks=emp_tasks)
+
+
+@app.route("/employee/dashboard/todo/<id>")
+def todo(id):
+    tasks = database.child("Tasks").get()
+    status = "todo"
+    for task in tasks.each():
+        if id == task.val()['id']:
+            key = task.key()
+    database.child("Tasks").child(key).update({"status": status})
+    return redirect(url_for("employeeDashboard"))
+
+
+@app.route("/employee/dashboard/inprogress/<id>")
+def inprogress(id):
+    tasks = database.child("Tasks").get()
+    status = "In Progress"
+    for task in tasks.each():
+        if id == task.val()['id']:
+            key = task.key()
+    database.child("Tasks").child(key).update({"status": status})
+    return redirect(url_for("employeeDashboard"))
+
+
+@app.route("/employee/dashboard/done/<id>")
+def done(id):
+    tasks = database.child("Tasks").get()
+    status = "Done"
+    for task in tasks.each():
+        if id == task.val()['id']:
+            key = task.key()
+    database.child("Tasks").child(key).update({"status": status})
+    return redirect(url_for("employeeDashboard"))
 
 
 @app.route("/employee/details")
 def employeeDetails():
-    return render_template("emp_details.html")
+    return render_template("emp_details.html", user_detail=session.get("user_detail"))
 
 
 @app.route("/employee/settings")
@@ -81,11 +128,12 @@ def employeeSettings():
 def employeeHistory():
     return render_template("emp_history.html")
 
-@app.route("/employee/history/screen-shots",methods=["GET", 'POST'])
+
+@app.route("/employee/history/screen-shots", methods=["GET", 'POST'])
 def employeeScreenShot():
     if request.method == "POST":
         startdate = request.form.get('date')
-    return render_template("emp_screen_shot.html",date=startdate)
+    return render_template("emp_screen_shot.html", date=startdate)
 
 
 @app.route("/admin")
