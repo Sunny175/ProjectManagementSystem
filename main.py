@@ -7,10 +7,21 @@ from firebase_admin import credentials, auth, storage
 from datetime import datetime
 from firebase_admin import credentials, auth
 from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask_mail import Mail, Message
+import mailtrap as mt
 
 app = Flask(__name__)
 app.secret_key = "session"
 app.config['UPLOAD'] = "static/uploads/"
+
+app.config['MAIL_SERVER']='smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = 'sunnykadia2183@gmail.com'
+app.config['MAIL_PASSWORD'] = 'rkoijnajcvwhreqa'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
+mail = Mail(app)
 
 config = {
     "apiKey": "AIzaSyD7w1t1naoWypN4eEZUhiZhq0l0G6xMdvk",
@@ -224,6 +235,10 @@ def addEmployee():
         }
         database.child("Employee").push(data)
         # os.remove(temp.name)
+        msg = Message('Hello from the Secure Infotech!', sender='sunnykadia2183@gmail.com', recipients=[email])
+        msg.body = f"hey, Your email address and password for website is email: {email} and password: 123456"
+        mail.send(msg)
+        authentication.create_user_with_email_and_password(email, password=123456)
         redirect(url_for("employee"))
     return redirect(url_for("employee"))
 
