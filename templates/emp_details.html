@@ -29,13 +29,12 @@
     <div class="cover-content">
         <div class="page-content">
             <div class="d-flex d-flex-row align-items-center mobile-view">
-                <img alt="Profile-Pic" src="/static/images/CTO.jpeg"
+                <img alt="Profile-Pic" src="/static/images/avatar.png"
                     class="profile-pic rounded-circle pmd-z-depth-light-2-1 mr-md-4 mr-sm-0" height="200" width="180">
                 <div class="media-body px-5">
-                    <h1>Yogesh Savaliya</h1>
-                    <p class="pmd-list-subtitle">CTO ( Chief technology officer ) </p>
+                    <h1>{{ user.val()['name'] }}</h1>
+                    <p class="pmd-list-subtitle">{{user.val()['position']}}</p>
 
-                    </p>
                     <div class="pmd-social-icon">
                         <a class="btn btn-sm pmd-btn-fab pmd-ripple-effect btn-light" href="javascript:void(0);"
                             title="Facebook">
@@ -66,33 +65,33 @@
             <div class="row view-basic-card">
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">Name</label>
-                    <p class="pmd-list-title">{{user_detail.val()['name']}}</p>
+                    <p class="pmd-list-title">{{ user.val()['name'] }}</p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">Designation</label>
-                    <p class="pmd-list-title">Python Developer</p>
+                    <p class="pmd-list-title">{{user.val()['position']}} </p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">ID</label>
-                    <p class="pmd-list-title">XYZ-123</p>
+                    <p class="pmd-list-title">{{ user.val()['id'] }}</p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">Phone</label>
-                    <p class="pmd-list-title"><a href="tel:+91 98250 98250" title="+91 98250 98250">+91 98250 98250</a>
+                    <p class="pmd-list-title"><a href="tel:+91 98250 98250" title="+91 98250 98250">{{ user.val()['phone'] }}</a>
                     </p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">Personal Email</label>
-                    <p class="pmd-list-title"><a href="mailto:yogesh@gmail.com" title="marie@xyz.com">Yogesh@gmail.com</a>
+                    <p class="pmd-list-title"><a href="mailto:yogesh@gmail.com" title="marie@xyz.com">{{ user.val()['email'] }}</a>
                     </p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">Date of Joining</label>
-                    <p class="pmd-list-title">16<sup>th</sup> June 2023</p>
+                    <p class="pmd-list-title">{{ user.val()['doj'] }}</p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                     <label class="pmd-list-subtitle">Department</label>
-                    <p class="pmd-list-title">Internship</p>
+                    <p class="pmd-list-title">{{ user.val()['department'] }}</p>
                 </div>
                 <div class="col-12 col-md-6 col-lg-3">
                    <a href="{{ url_for('employeeHistory') }}"><button type="submit" class="btn btn-outline-success pmd-ripple-effect mt-3" name="signup" value="Update Password" >Check History -></button> 

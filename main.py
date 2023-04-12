@@ -1,7 +1,6 @@
 import re
 import uuid
 import datetime as dt
-from datetime import datetime
 import firebase_admin
 import pyrebase
 from firebase_admin import credentials, auth, storage
@@ -27,7 +26,6 @@ config = {
 firebase = pyrebase.initialize_app(config=config)
 authentication = firebase.auth()
 database = firebase.database()
-# storage = firebase.storage()
 cred = credentials.Certificate('firebase_private_key.json')
 app_storage = firebase_admin.initialize_app(cred, {
     'storageBucket': 'projectmanagement-3e8a8.appspot.com',
@@ -84,7 +82,7 @@ def employeeDashboard():
 @app.route("/employee/dashboard/todo/<id>")
 def todo(id):
     tasks = database.child("Tasks").get()
-    status = "todo"
+    status = "To Do"
     for task in tasks.each():
         if id == task.val()['id']:
             key = task.key()
@@ -94,6 +92,7 @@ def todo(id):
 
 @app.route("/employee/dashboard/inprogress/<id>")
 def inprogress(id):
+    print("In Progress")
     tasks = database.child("Tasks").get()
     status = "In Progress"
     for task in tasks.each():
@@ -105,6 +104,7 @@ def inprogress(id):
 
 @app.route("/employee/dashboard/done/<id>")
 def done(id):
+    print("Done")
     tasks = database.child("Tasks").get()
     status = "Done"
     for task in tasks.each():
@@ -116,11 +116,17 @@ def done(id):
 
 @app.route("/employee/details")
 def employeeDetails():
-    return render_template("emp_details.html", user_detail=session.get("user_detail"))
+    employee = database.child("Employee").get()
+    for emp in employee.each():
+        if session.get("user_email") == emp.val()['email']:
+            user = emp
+            session['assigned_pc'] = emp.val()['assigned_pc']
+    return render_template("emp_details.html", user=user)
 
 
-@app.route("/employee/settings")
+@app.route("/employee/settings", methods=["get", "post"])
 def employeeSettings():
+    updatePassword()
     return render_template("emp_settings.html")
 
 
@@ -133,7 +139,9 @@ def employeeHistory():
 def employeeScreenShot():
     if request.method == "POST":
         startdate = request.form.get('date')
-    return render_template("emp_screen_shot.html", date=startdate)
+        data = screenShotHistory(startdate, session.get("assigned_pc"))
+        return render_template("emp_screen_shot.html", date=startdate, data=data)
+    return render_template("emp_screen_shot.html")
 
 
 @app.route("/admin")
@@ -233,6 +241,10 @@ def removeData(id):
 
 @app.route("/admin/settings", methods=['get', 'post'])
 def setting():
+    updatePassword()
+    return render_template("settings.html")
+
+def updatePassword():
     if request.method == "POST":
         current_password = request.form.get("currentpassword")
         password = request.form.get("password")
@@ -240,11 +252,8 @@ def setting():
         if current_password == repeat_password:
             flash("Please enter different password.")
         elif password == repeat_password:
-            firebase_admin.initialize_app(cred)
             firebase_admin.auth.update_user(uid=session.get('user_id'), password=password)
             flash("Password updated successfully")
-    return render_template("settings.html")
-
 
 @app.route("/admin/project-management", methods=['post', 'get'])
 def projectManagement():
@@ -324,6 +333,11 @@ def activeTime():
 
 @app.route("/admin/history/active-time/screen-shots/<name>/<assigned_pc>/<date>")
 def screenShot(name, assigned_pc, date):
+    data = screenShotHistory(date, assigned_pc)
+    return render_template("screenshot.html", name=name, data=data)
+
+
+def screenShotHistory(date, assigned_pc):
     bucket = storage.bucket(app=app_storage)
     blobs = bucket.list_blobs(prefix=assigned_pc)
     img_url = []
@@ -332,7 +346,7 @@ def screenShot(name, assigned_pc, date):
     current_imgs = []
     pattern = r'/(\d+\.\d+)\.'
     for blob in blobs:
-        img_url.append(blob.generate_signed_url(dt.timedelta(seconds=100), method='GET'))
+        img_url.append(blob.generate_signed_url(dt.timedelta(seconds=10000), method='GET'))
     for img in img_url:
         list = re.findall(pattern, img)
         img_date = float(list[0])
@@ -343,7 +357,7 @@ def screenShot(name, assigned_pc, date):
             dates.append(img_date)
             times.append(time)
             current_imgs.append(img)
-    return render_template("screenshot.html", name=name, data=zip(img_url, times))
+    return zip(current_imgs, times)
 
 
 @app.route("/forget-password", methods=["POST", "GET"])

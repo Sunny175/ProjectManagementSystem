@@ -112,7 +112,7 @@
             </a>
 
             <!-- Avatar -->
-            <span>Welcome, {{ name }} !</span>
+            <span>Welcome, {{ session.get("user_name") }} !</span>
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
                id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="/static/images/CTO.jpeg" class="rounded-circle"
