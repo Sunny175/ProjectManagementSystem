@@ -1,5 +1,4 @@
 from pynput import keyboard, mouse
-import time
 from PIL import ImageGrab
 import random
 import time
@@ -16,7 +15,7 @@ firebaseConfig = {
     "messagingSenderId": "398063613086",
     "appId": "1:398063613086:web:05aa2a5bb0ccb2d821778f",
     "measurementId": "G-DBHEPCK3YT"
-};
+}
 
 
 def take_screenshot():

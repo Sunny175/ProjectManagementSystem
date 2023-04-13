@@ -222,7 +222,7 @@ def addEmployee():
         file = request.files["profile_pic"]
         # file.save(os.path.join(app.config['UPLOAD'], file.filename))
         # print(file.filename)
-        # storage.child("employee_images").put(file)
+
         data = {
             "name": name,
             "position": position,
@@ -233,13 +233,24 @@ def addEmployee():
             "doj": doj,
             "assigned_pc": assigned_pc
         }
-        database.child("Employee").push(data)
-        # os.remove(temp.name)
-        msg = Message('Hello from the Secure Infotech!', sender='sunnykadia2183@gmail.com', recipients=[email])
-        msg.body = f"hey, Your email address and password for website is email: {email} and password: 123456"
-        mail.send(msg)
-        authentication.create_user_with_email_and_password(email, password=123456)
-        redirect(url_for("employee"))
+        employee = database.child("Employee").get()
+        flag = 0
+        for emp in employee.each():
+            if emp.val()['id'] == id:
+                flag = 0
+            else:
+                flag = 1
+        if flag == 1:
+            database.child("Employee").push(data)
+            # storage.child("employee_images").put(file)
+            # os.remove(temp.name)
+            msg = Message('Hello from the Secure Infotech!', sender='sunnykadia2183@gmail.com', recipients=[email])
+            msg.body = f"hey, Your email address and password for website is email: {email} and password: 123456"
+            mail.send(msg)
+            authentication.create_user_with_email_and_password(email, password=123456)
+            redirect(url_for("employee"))
+        else:
+            flash("The data is already exists.")
     return redirect(url_for("employee"))
 
 
