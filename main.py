@@ -2,13 +2,14 @@ import re
 import uuid
 import datetime as dt
 import firebase_admin
+import jinja2
 import pyrebase
+import importlib
 from firebase_admin import credentials, auth, storage
 from datetime import datetime
 from firebase_admin import credentials, auth
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
-import mailtrap as mt
 
 app = Flask(__name__)
 app.secret_key = "session"
@@ -151,7 +152,18 @@ def employeeScreenShot():
     if request.method == "POST":
         startdate = request.form.get('date')
         data = screenShotHistory(startdate, session.get("assigned_pc"))
-        return render_template("emp_screen_shot.html", date=startdate, data=data)
+        active_times = database.child("Time").get()
+        user_active_time = []
+        for activeTime in active_times.each():
+            if session.get("assigned_pc") == activeTime.val()['pc_name'] and startdate == activeTime.val()['date']:
+                user_active_time.append(activeTime.val()['active_time'])
+        mysum = dt.timedelta()
+        for i in user_active_time:
+            (h, m, s) = i.split(':')
+            d = dt.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
+            mysum += d
+        print(mysum)
+        return render_template("emp_screen_shot.html", date=startdate, data=data, time=mysum)
     return render_template("emp_screen_shot.html")
 
 
@@ -353,7 +365,10 @@ def activeTime():
     if request.method == "POST":
         date = request.form.get("date")
         employee = database.child("Employee").get()
-        return render_template("activetime.html", date=date, employee=employee)
+        active_times = database.child("Time").get()
+        times = []
+
+        return render_template("activetime.html", date=date, employee=employee, active_times=active_times, times=times,imp0rt=importlib.import_module, int=int)
     return render_template("activetime.html")
 
 

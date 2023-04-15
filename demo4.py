@@ -44,48 +44,49 @@ data = {
 }
 
 main = pd.DataFrame(data, columns=['Status', 'Time'])
+take_screenshot()
+while True:
+    while t != 300:
+        now = datetime.now()
+        current_time = now.strftime("%d/%m/%y %H:%M:%S")
+        with keyboard.Events() as events:
+            event = events.get(1.0)
 
-while t != 700:
-    now = datetime.now()
-    current_time = now.strftime("%d/%m/%y %H:%M:%S")
-    with keyboard.Events() as events:
-        event = events.get(1.0)
+        with mouse.Events() as events1:
+            event1 = events1.get(1.0)
 
-    with mouse.Events() as events1:
-        event1 = events1.get(1.0)
+        if event is None and event1 is None and t == random.randint(250, 300):
+            df2 = {'Status': ['Inactive'], 'Time': [current_time]}
+            df2 = pd.DataFrame(df2)
+            main = pd.concat([main, df2], ignore_index=True)
+            take_screenshot()
+            t = 0
+        elif event is not None or event1 is not None:
+            df2 = {'Status': ['Active'], 'Time': [current_time]}
+            df2 = pd.DataFrame(df2)
+            main = pd.concat([main, df2], ignore_index=True)
+        elif t == random.randint(10, 60):
+            take_screenshot()
+        t += 1
+        print(t)
 
-    if event is None and event1 is None and t == random.randint(300, 500):
-        df2 = {'Status': ['Inactive'], 'Time': [current_time]}
-        df2 = pd.DataFrame(df2)
-        main = pd.concat([main, df2], ignore_index=True)
-        t = 0
-    elif event is not None or event1 is not None:
-        df2 = {'Status': ['Active'], 'Time': [current_time]}
-        df2 = pd.DataFrame(df2)
-        main = pd.concat([main, df2], ignore_index=True)
+    main['Time'] = pd.to_datetime(main['Time'])
+    # create a new column with the time differences between rows
+    main['time_diff'] = main['Time'].diff()
 
-    elif t == random.randint(50, 200):
-        take_screenshot()
-    t += 1
-    print(t)
+    # filter the DataFrame to only include active times
+    active_df = main[main['Status'] == 'Active']
 
-main['Time'] = pd.to_datetime(main['Time'])
-# create a new column with the time differences between rows
-main['time_diff'] = main['Time'].diff()
+    # calculate the total active time
+    total_active_time = active_df['time_diff'].sum()
 
-# filter the DataFrame to only include active times
-active_df = main[main['Status'] == 'Active']
+    # print the total active time
+    current_date = str(datetime.now().date())
+    total_active_time = str(total_active_time).split()
+    data = {
+        "pc_name": system_name,
+        "active_time": total_active_time[2],
+        "date": current_date
+    }
 
-# calculate the total active time
-total_active_time = active_df['time_diff'].sum()
-
-# print the total active time
-current_date = str(datetime.now().date())
-total_active_time = str(total_active_time).split()
-data = {
-    "pc_name": system_name,
-    "active_time": total_active_time[2],
-    "date": current_date
-}
-
-database.child("Time").push(data)
+    database.child("Time").push(data)
